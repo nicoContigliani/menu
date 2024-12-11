@@ -146,3 +146,34 @@
         /* Ajusta el tamaño de la imagen en escritorio */
     }
 }
+
+.loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-size: 1.5rem;
+    color: #333;
+    font-weight: bold;
+    animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+
+.blur-effect {
+    filter: blur(10px);
+    transition: filter 0.5s ease-in-out;
+}
+
+.clear-effect {
+    filter: blur(0);
+    transition: filter 0.5s ease-in-out;
+}

@@ -40,12 +40,105 @@
 //     }
 // }
 
+// import { NextApiRequest, NextApiResponse } from "next";
+// import clientPromise from "../../utils/mongodb";
+// import { ReadExcelFile } from "../../servicesApi/ReadExcelFile.services";
+
+// const cachedCompanyData: Record<string, any> = {}; // Caché simple en memoria
+
+// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+//     if (req.method !== "POST") {
+//         return res.status(405).json({ error: "Método no permitido, usa POST" });
+//     }
+
+//     const { folder } = req.body;
+//     if (!folder || typeof folder !== "string") {
+//         return res.status(400).json({ error: "Debes proporcionar el nombre de la carpeta (folder)" });
+//     }
+
+//     // Revisar caché para evitar consulta repetitiva en la base de datos
+//     if (cachedCompanyData[folder]) {
+//         console.log("Datos de la empresa obtenidos de la caché");
+//         return res.status(200).json({ data: cachedCompanyData[folder] });
+//     }
+
+//     try {
+//         // Conectar a MongoDB (conexión persistente)
+//         const client = await clientPromise;
+//         const db = client.db("menuDB");
+//         const collection = db.collection("companies");
+
+//         // Buscar en la colección según el folderName
+//         const company = await collection?.findOne({ companyName: folder });
+
+//         if (!company) {
+//             return res.status(404).json({ error: "No se encontró una empresa con el folder especificado" });
+//         }
+
+//         // Almacenar en caché
+//         cachedCompanyData[folder] = company;
+
+//         // Devolver los datos de la empresa
+//         return res.status(200).json({ data: company });
+//     } catch (error) {
+//         console.error("Error al procesar la solicitud:", error);
+//         return res.status(500).json({ error: "Ocurrió un error al procesar la solicitud" });
+//     }
+// }
+
+
+// import { NextApiRequest, NextApiResponse } from "next";
+// import clientPromise from "../../utils/mongodb";
+// import { ReadExcelFile } from "../../servicesApi/ReadExcelFile.services";
+// import cache from 'memory-cache';  // Importar memory-cache
+
+// // Usamos el caché de memory-cache en lugar de un objeto en memoria
+// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+//     if (req.method !== "POST") {
+//         return res.status(405).json({ error: "Método no permitido, usa POST" });
+//     }
+
+//     const { folder } = req.body;
+//     if (!folder || typeof folder !== "string") {
+//         return res.status(400).json({ error: "Debes proporcionar el nombre de la carpeta (folder)" });
+//     }
+
+//     // Revisar caché para evitar consulta repetitiva en la base de datos
+//     const cachedData = cache.get(folder);  // Usamos cache.get() para obtener los datos del caché
+//     if (cachedData) {
+//         console.log("Datos de la empresa obtenidos de la caché");
+//         return res.status(200).json({ data: cachedData });
+//     }
+
+//     try {
+//         // Conectar a MongoDB (conexión persistente)
+//         const client = await clientPromise;
+//         const db = client.db("menuDB");
+//         const collection = db.collection("companies");
+
+//         // Buscar en la colección según el folderName
+//         const company = await collection?.findOne({ companyName: folder });
+
+//         if (!company) {
+//             return res.status(404).json({ error: "No se encontró una empresa con el folder especificado" });
+//         }
+
+//         // Almacenar en caché usando cache.put()
+//         cache.put(folder, company);  // Guardamos el resultado en caché con la clave 'folder'
+
+//         // Devolver los datos de la empresa
+//         return res.status(200).json({ data: company });
+//     } catch (error) {
+//         console.error("Error al procesar la solicitud:", error);
+//         return res.status(500).json({ error: "Ocurrió un error al procesar la solicitud" });
+//     }
+// }
 import { NextApiRequest, NextApiResponse } from "next";
 import clientPromise from "../../utils/mongodb";
 import { ReadExcelFile } from "../../servicesApi/ReadExcelFile.services";
+import cache from 'memory-cache';  // Importar memory-cache
 
-const cachedCompanyData: Record<string, any> = {}; // Caché simple en memoria
-
+// Usamos el caché de memory-cache en lugar de un objeto en memoria
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Método no permitido, usa POST" });
@@ -57,9 +150,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Revisar caché para evitar consulta repetitiva en la base de datos
-    if (cachedCompanyData[folder]) {
+    const cachedData = cache.get(folder);  // Usamos cache.get() para obtener los datos del caché
+    if (cachedData) {
         console.log("Datos de la empresa obtenidos de la caché");
-        return res.status(200).json({ data: cachedCompanyData[folder] });
+        return res.status(200).json({ data: cachedData });
     }
 
     try {
@@ -75,8 +169,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(404).json({ error: "No se encontró una empresa con el folder especificado" });
         }
 
-        // Almacenar en caché
-        cachedCompanyData[folder] = company;
+        // Almacenar en caché usando cache.put()
+        cache.put(folder, company);  // Guardamos el resultado en caché con la clave 'folder'
 
         // Devolver los datos de la empresa
         return res.status(200).json({ data: company });
